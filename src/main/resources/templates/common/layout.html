@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beetl 论坛</title>
+    <meta name="keywords" content="Beetl,BeetlSql">
+    <meta name="description" content="论坛模板">
+    <link rel="shortcut icon" href="favicon.ico">
+<!-- 	<link href="${ctxPath}/css/bootstrap.min.css" rel="stylesheet"> -->
+	<link href="//cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script><!-- 部分content的里面可能用到jQuery，所以前置了 -->
+    <script src="${ctxPath}/js/alert.js"></script><!-- 自己写的一个简单的jq弹窗插件 -->
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-4 col-md-3">
+           		<h3>Beetl-BBS<small><a href="http://git.oschina.net/xiandafu/beetl-bbs" >1.1版本</a> </small></h3>
+           	 	@  var _user = c.currentUser(request, servlet.response); 
+            	<div class="panel panel-default">
+					<div class="panel-heading">板块</div>
+					<ul class="list-group">
+						<li class="list-group-item"><a href="${ctxPath}/bbs/index/1.html"> <i class="fa fa-bookmark "></i> 首页综合</a></li>
+						@for(moudle in moduleList){
+						<li class="list-group-item"><a href="${ctxPath}/bbs/topic/module/${moudle.id}-1.html"> <i class="fa fa-bookmark"></i> ${moudle.name} </a></li>
+						@}
+						
+						<li class="list-group-item"><a href="${_user!=null?ctxPath+'/bbs/myMessage.html':'#'}"> <i class="fa fa-certificate"></i> 给我的回复 <span class="label label-warning pull-right">${_user!=null?c.myMessageCount(_user.id)}</span></a></li>
+						<!--   目前暂时不支持
+						<li class="list-group-item"><a href="#"> <i class="fa fa-file-text-o"></i> 我的收藏 <span class="label label-danger pull-right">2</span></a></li>
+						-->
+					</ul>
+				</div>            	
+                @ if(!has(inLogin)){
+	               
+	                @ if(_user==null){
+	            	<div class="panel panel-default">
+						<div class="panel-heading">登录 <small>欢迎登录Beetl</small></div>
+						<div class="panel-body">
+			                <form action="${ctxPath}/bbs/user/login" onsubmit="return ajaxSubmit(this,'reload')">
+				                <div class="form-group">
+									<label>用户名</label>
+									<input type="text" placeholder="请输入您用户名" name="userName"  class="form-control">
+								</div>
+		                        <div class="form-group">
+		                            <label>密码</label>
+									<input type="password" placeholder="请输入密码" name="password" class="form-control">
+		                        </div>
+								<a href="${ctxPath}/bbs/user/register.html" class="btn btn-primary" >注 册</a>
+								<button class="btn btn-danger pull-right" type="submit">登 录</button>
+			                </form>
+						</div>
+					</div>      
+					@}else{
+	            	<div class="panel panel-default">
+						<div class="panel-heading"><a class="btn btn-link btn-block" href="${ctxPath}/bbs/topic/add.html">点击发帖</a></div>
+						<div class="panel-body">
+                            <p>欢迎你<span class="label label-primary">${_user.userName}</span> <span class="label label-danger">${level(_user.level)}</span></p>
+                            <p>你已有<span class="label label-success">${_user.score}</span>积分</p>
+                            <p><a href="javascript:;" onclick="$.post('${ctxPath}/bbs/user/logout',function(){location.reload()})">点击注销</a></p>
+						</div>
+					</div>  
+					@}
+				@} //end
+            </div>
+            <div class="col-sm-8 col-md-9">
+           	${layoutContent}
+           	</div>
+        </div>
+    </div>
+    <script src="//cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    @if(requiredEditor!false){
+    <link rel="stylesheet" href="${ctxPath}/simditor/simditor.min.css" />
+    <script src="//cdn.bootcss.com/marked/0.3.6/marked.min.js"></script>
+    <script src="//cdn.bootcss.com/to-markdown/3.0.3/to-markdown.min.js"></script>
+    <script type="text/javascript" src="${ctxPath}/simditor/simditor.min.js"></script>
+    <script type="text/javascript">
+		var editor = new Simditor({
+			textarea: $('#postContent'),
+			defaultImage:'http://ibeetl.com/img/logo.png',
+			pasteImage:true,
+			cleanPaste:true,
+			toolbar:['title','bold','italic','underline','strikethrough','fontScale','color','ol','ul','blockquote','code','table','link','image','hr','indent','outdent','alignment','|','markdown'],
+			//按Beetl论坛的用处来看，暂时只需要如下几个语言（HTML、XML、json、java、javascript、markdown、sql）,如有需要再扩展
+			codeLanguages:[{name:'HTML,XML',value:'html'},{name:'JSON',value:'json'},{name:'Java',value:'java'},{name:'JavaScript',value:'js'},{name:'Markdown',value:'markdown'},{name:'SQL',value:'sql'}],
+			upload:{
+				url: '${ctxPath}/bbs/upload',
+				fileKey: 'editormd-image-file',
+				connectionCount: 3,
+				leaveConfirm: '上传正在进行中，确定要离开当前页面吗？'
+			}
+		});
+		 function preview(){
+			 	var preWin = window.open('about:blank','preview');
+				preWin.document.write('<meta name="google" value="notranslate"><link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"><style>.panel img{max-width:100% !important;heightLauto !important;}.panel{margin-top:20px;}</style>');
+				preWin.document.write('<div class="container-fluid"><div class="row"><div class="col-sm-8 col-sm-offset-2"><div class="panel panel-default"><div class="panel-heading">内容提交预览</div><div class="panel-body">'+editor.sync()+'</div><div class="panel-footer"><a href="javascript:;" class="btn btn-link" onclick="window.close();">关闭预览</a></div></div></div></div></div>');
+				preWin.document.write('<link href="http://cdn.bootcss.com/highlight.js/9.8.0/styles/github-gist.min.css" rel="stylesheet"><script src="http://cdn.bootcss.com/highlight.js/9.8.0/highlight.min.js"></scr'+'ipt><script>hljs.initHighlightingOnLoad();</scr'+'ipt>');
+				preWin.document.close();
+		}
+    </script>
+    @}
+    <script>
+    //全局表单ajax提交(onsubmit="return ajaxSubmit(this,reload)")
+	 function ajaxSubmit(form,reload){
+		 form = $(form);
+		 $.post(form.attr('action'),form.serialize(),function(json){
+			 json.err?$.alert(json.msg):reload?location.reload():location.replace('${ctxPath}'+json.msg);
+		 })
+		 return false;
+	 }
+    </script>
+</body>
+</html>
